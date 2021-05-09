@@ -1,0 +1,102 @@
+version: "3.7"
+
+services:
+  docker-from-docker:
+    container_name: mlops-devcontainer
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # On Linux, you may need to update USER_UID and USER_GID below if not your local UID is not 1000.
+        USER_UID: 1000
+        USER_GID: 1000
+    init: true
+
+    ports:
+      - "${JUPYTER_PORT}:${JUPYTER_PORT}"
+      - "${API_PORT}:${API_PORT}"
+      - "${YATAI_UI_PORT}:${YATAI_UI_PORT}"
+      - "${YATAI_SERVER_PORT}:${YATAI_SERVER_PORT}"
+    env_file:
+      - ".env"
+    depends_on:
+      - "postgres"
+    volumes:
+      # Update this to wherever you want VS Code to mount the folder of your project
+      - ..:/workspace:cached
+      # Forwards the local Docker socket to the container.
+      - /var/run/docker.sock:/var/run/docker-host.sock
+      # Do not set up git each time
+      - ~/.gitconfig:/root/.gitconfig
+      # For bentoml artifacts
+      - artifact-bentoml:/artifact-bentoml
+    entrypoint: /usr/local/share/docker-init.sh
+    command: >
+      sh -c "cd /workspace && pre-commit install && \
+            jupyter notebook \
+              --NotebookApp.token='' \
+              --ip 0.0.0.0 \
+              --port ${JUPYTER_PORT} \
+              --allow-root &> /dev/null && \
+              bentoml yatai-service-start \
+               --db-url=sqlite:///artifact-bentoml/storage.db  \
+               --repo-base-url=/artifact-bentoml/repository \
+               --grpc-port ${YATAI_SERVER_PORT} \
+               --ui-port ${YATAI_UI_PORT}"
+
+  mlflow:
+    restart: unless-stopped
+    container_name: mlops-mlflow
+    build: ../mlflow
+    ports:
+      - "${MLFLOW_PORT}:${MLFLOW_PORT}"
+    env_file:
+      - ".env"
+    volumes:
+      - artifact-mlflow:/artifact-mlflow
+    command: >
+      sh -c "mlflow server \
+              --host 0.0.0.0 \
+              --static-prefix /mlflow \
+              --backend-store-uri sqlite:///artifact-mlflow/mlflow.db \
+              --default-artifact-root /artifact-mlflow \
+              -p ${MLFLOW_PORT}"
+
+  postgres:
+    restart: unless-stopped
+    container_name: mlops-postgres
+    image: postgres:13.2
+    volumes:
+      - postgres-data:/var/lib/postgresql/data/
+    env_file:
+      - .env
+    command: -p ${POSTGRES_PORT}
+
+  pgadmin:
+    restart: unless-stopped
+    container_name: mlops-pgadmin
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    env_file:
+      - ".env"
+    volumes:
+      - pgadmin-data:/root/.pgadmin
+    ports:
+      - "${PGADMIN_PORT}:80"
+
+  prometheus:
+    image: prom/prometheus:v2.26.0
+    ports:
+      - "${PROMETHEUS_PORT}:9090"
+    volumes:
+      - ../prometheus:/etc/prometheus
+      - prometheus-data:/prometheus
+    command: --web.enable-lifecycle --config.file=/etc/prometheus/prometheus.yml
+
+volumes:
+  artifact-mlflow:
+  artifact-bentoml:
+  postgres-data:
+  prometheus-data:
+  pgadmin-data:

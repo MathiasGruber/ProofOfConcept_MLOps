@@ -1,0 +1,15 @@
+apiVersion: machinelearning.seldon.io/v1alpha2
+kind: SeldonDeployment
+metadata:
+  name: iris-model
+  namespace: seldon
+spec:
+  name: iris
+  predictors:
+    - graph:
+        children: []
+        implementation: MLFLOW_SERVER
+        modelUri: https://modelstorage.blob.core.windows.net/mlops-container-demo/directory/model/MLmodel
+        name: classifier
+      name: default
+      replicas: 1

@@ -1,0 +1,40 @@
+output-format: text
+strictness: high
+
+# PEP8 for python code style
+pep8:
+  #disable:
+  #- W602
+  #- W603
+  #enable:
+  #- W601
+  options:
+    max-line-length: 120
+
+# Code complexity analysis
+mccabe:
+  run: true
+
+# Checks for source code errors
+pyflakes:
+  disable:
+    - F401 # Allow import * as used in Django
+
+# PyLint for python linting
+pylint:
+  options:
+    max-line-length: 120
+  disable:
+    - import-outside-toplevel
+    - broad-except
+    - abstract-method
+    - protected-access
+    - too-many-locals
+    - invalid-name
+
+# MyPy for python type checks
+mypy:
+  run: true
+  options:
+    ignore-missing-imports: true
+    follow-imports: skip

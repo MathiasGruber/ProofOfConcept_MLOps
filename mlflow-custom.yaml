@@ -1,0 +1,21 @@
+apiVersion: machinelearning.seldon.io/v1alpha2
+kind: SeldonDeployment
+metadata:
+  name: mlflow-mnist
+  namespace: mlflowmodels-namespace
+spec:
+  name: mnist
+  predictors:
+    - graph:
+        children: []
+        endpoint:
+          type: REST
+        name: classifier
+        type: MODEL
+      name: default
+      replicas: 1
+      componentSpecs:
+        - spec:
+            containers:
+              - name: classifier
+                image: nanomathias/mlflow_model:0.1

@@ -1,0 +1,27 @@
+{
+  "name": "Docker from Docker Compose",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "docker-from-docker",
+  "workspaceFolder": "/workspace",
+  "settings": {
+    "terminal.integrated.shell.linux": "/bin/bash"
+  },
+  "appPort": [443],
+  "extensions": [
+    "ms-azuretools.vscode-docker",
+    "ms-python.python",
+    "dbaeumer.vscode-eslint",
+    "yo1dog.cursor-align",
+    "mhutchie.git-graph",
+    "github.vscode-pull-request-github",
+    "hashicorp.terraform",
+    "esbenp.prettier-vscode",
+    "ms-vscode.vscode-typescript-tslint-plugin",
+    "redhat.vscode-yaml",
+    "visualstudioexptteam.vscodeintellicode",
+    "ms-python.anaconda-extension-pack",
+    "njpwerner.autodocstring",
+    "eamodio.gitlens",
+    "steoates.autoimport"
+  ]
+}
